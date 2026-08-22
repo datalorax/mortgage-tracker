@@ -1,0 +1,16 @@
+# Secrets — never commit
+mortgage_data.env
+
+# Virtual environment
+.venv/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# macOS
+.DS_Store
+
+# Editor/IDE
+.vscode/
+.positron/
