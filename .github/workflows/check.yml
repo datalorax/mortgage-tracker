@@ -1,0 +1,48 @@
+name: Mortgage Rate Check
+
+on:
+  schedule:
+    - cron: '0 15 * * 4'  # Thursdays 3pm UTC — a couple hours after PMMS releases
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    outputs:
+      recommend: ${{ steps.run_check.outputs.recommend }}
+      reason: ${{ steps.run_check.outputs.reason }}
+      monthly_savings: ${{ steps.run_check.outputs.monthly_savings }}
+      lifetime_interest_saved: ${{ steps.run_check.outputs.lifetime_interest_saved }}
+    env:
+      ORIGINATION_DATE: ${{ secrets.ORIGINATION_DATE }}
+      ORIGINAL_RATE: ${{ secrets.ORIGINAL_RATE }}
+      ORIGINAL_LOAN_AMOUNT: ${{ secrets.ORIGINAL_LOAN_AMOUNT }}
+      ORIGINAL_TERM_YEARS: ${{ secrets.ORIGINAL_TERM_YEARS }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+      - run: uv sync
+      - id: run_check
+        run: uv run main.py
+
+  notify:
+    needs: check
+    if: needs.check.outputs.recommend == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send email
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          username: ${{ secrets.EMAIL_USERNAME }}
+          password: ${{ secrets.EMAIL_APP_PASSWORD }}
+          subject: "🏠 Refinance may be worth it"
+          to: ${{ secrets.EMAIL_RECIPIENTS }}
+          from: Mortgage Tracker
+          body: |
+            Reason: ${{ needs.check.outputs.reason }}
+            Monthly savings: $${{ needs.check.outputs.monthly_savings }}
+            Lifetime interest saved: $${{ needs.check.outputs.lifetime_interest_saved }}
+
+            Full details in the Actions log: ${{ github.server_url }}/${{ github.repository }}/actions
