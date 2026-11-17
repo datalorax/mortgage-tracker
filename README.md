@@ -67,7 +67,5 @@ This repo is designed to be forked. If you want to run your own copy:
 No part of this tool requires paid services — the rate data source (FRED) and the hosting (if you set up scheduled runs via GitHub Actions) are both free.
 
 ## Roadmap
-
-- Scheduled weekly checks via GitHub Actions with email alerts when a refi is recommended
 - Historical rate/verdict logging to track trends over time
 - Home/auto insurance comparison tracking
